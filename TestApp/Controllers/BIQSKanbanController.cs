@@ -13,6 +13,7 @@ namespace TestApp.Controllers
 {
     public class BIQSKanbanController : Controller
     {
+        //虚拟类，，只为了使用工厂模式
         Repository<BIQS> KanBanRe = new Repository<BIQS>();
         // GET: BIQSKanban
         public ActionResult Index()
