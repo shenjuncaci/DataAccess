@@ -1,0 +1,46 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+<link href="~/Scripts/JQGrid/css/ui.jqgrid.css" rel="stylesheet" />
+<link href="~/Content/jquery-ui-1.12.1.custom/jquery-ui.css" rel="stylesheet" />
+<script src="~/Scripts/JQGrid/js/jquery-1.11.0.min.js"></script>
+<script src="~/Scripts/JQGrid/js/jquery.jqGrid.js"></script>
+<script src="~/Content/jquery-ui-1.12.1.custom/jquery-ui.js"></script>
+<script src="~/Scripts/JQGrid/js/i18n/grid.locale-cn.js"></script>
+<script src="~/Scripts/JQGrid/jqGridexpand.js"></script>
+<script src="~/Scripts/FrameWork.js"></script>
+<link href="~/Scripts/jquery.layer/theme/default/layer.css" rel="stylesheet" />
+<script src="~/Scripts/jquery.layer/layer.js"></script>
+<script src="~/Scripts/Validator.js"></script>
+<h2>Index</h2>
+<button onclick="Test()">微信测试</button>
+
+<script>
+    function Test() {
+        alert(GetQuery('code'));
+        alert(GetQuery('state'));
+        //alert($_GET['code']);
+        //var url = "https://qyapi.weixin.qq.com/cgi-bin/user/getuserinfo?access_token=ACCESS_TOKEN&code=" + GetQuery('code');
+        //doPost(url);
+        //$.get(url, data, callback)
+
+        $.ajax({
+            type: "post",
+            url: "/Wechat1/WeChatTest/GetUserInfo",
+            data: { code: GetQuery('code') },
+            async: false,
+            success: function (msg) {
+                alert(msg);
+                console.log(msg);
+            },
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                alert(XMLHttpRequest.status);
+                alert(XMLHttpRequest.readyState);
+                alert(textStatus);
+            }
+
+        });
+    }
+</script>
+

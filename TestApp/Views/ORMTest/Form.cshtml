@@ -1,0 +1,68 @@
+﻿
+@{
+    ViewBag.Title = "Form";
+    Layout = null; 
+}
+
+<link href="~/Content/jquery-ui-1.12.1.custom/jquery-ui.css" rel="stylesheet" />
+<script src="~/Scripts/JQGrid/js/jquery-1.11.0.min.js"></script>
+<script src="~/Content/jquery-ui-1.12.1.custom/jquery-ui.js"></script>
+<script src="~/Scripts/FrameWork.js"></script>
+
+<link href="~/Scripts/jquery.layer/theme/default/layer.css" rel="stylesheet" />
+<script src="~/Scripts/jquery.layer/layer.js"></script>
+
+<script src="~/Scripts/Validator.js"></script>
+
+<script src="~/Scripts/datepicker/WdatePicker.js"></script>
+
+
+<h2>Form</h2>
+
+<table id="form1">
+    <tr>
+        <td>设备ID</td>
+        <td><input id="DEV_ID" type="text" class="txt" datacol="yes" checkexpession="NotNull" err="设备ID"/></td>
+        <td>设备URL</td>
+        <td><input id="DEV_URL" type="text" class="txt" datacol="yes" checkexpession="NotNull" err="设备URL" /></td>
+    </tr>
+</table>
+
+<script>
+    var index = parent.layer.getFrameIndex(window.name); //获取窗口索引
+
+    $(function () {
+
+        InitControl();
+    })
+
+    //得到一个对象实体
+    function InitControl() {
+
+        if (!!GetQuery('id')) {
+
+            AjaxJson("/ORMTest/SetForm", { id: GetQuery('id') }, function (data) {
+                SetWebControls(data);
+
+            });
+
+
+        }
+    }
+
+    function AcceptClick() {
+
+        if (!CheckDataValid('#form1')) {
+            return false;
+        }
+
+        var postData = GetWebControls("#form1");
+        console.log(postData);
+        postData["id"] = GetQuery('id');
+        AjaxJson("/ORMTest/SubmitForm", postData, function (data) {
+            parent.windowload();
+            parent.layer.close(index);
+
+        });
+    }
+</script>

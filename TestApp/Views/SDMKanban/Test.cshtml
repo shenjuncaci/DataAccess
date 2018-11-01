@@ -1,0 +1,1615 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = null;
+}
+
+<style>
+
+    body {
+        margin: 0px;
+    }
+
+    ul {
+        padding: 0px;
+    }
+
+    .div {
+        list-style: none;
+        background: #18345B;
+        width: calc(33% - 20px);
+        padding-bottom: calc(16% - 20px);
+        margin: 10px;
+        float: left;
+    }
+</style>
+<script src="~/Scripts/JQGrid/js/jquery-1.11.0.min.js"></script>
+<link href="~/Scripts/layui/css/layui.css" rel="stylesheet" />
+<script src="~/Scripts/layui/layui.js"></script>
+<script src="~/Scripts/echarts/echarts.js"></script>
+
+<link href="~/Content/NumScoller/css/globle.css" rel="stylesheet" />
+<script src="~/Content/NumScoller/js/num.js"></script>
+@*<link href="~/Content/TxtScoller/style2.css" rel="stylesheet" />*@
+<script src="~/Content/TxtScoller/myslideup.js"></script>
+
+
+    <div class="div"><div id="TodayStopTime" @*style="height:100%"*@></div></div>
+    <div class="div" id="TodayStopTime1"></div>
+    <div class="div" id="TodayStopTime2"></div>
+    <div class="div" id="TodayStopTime3"></div>
+    <div class="div" id="TodayStopTime4"></div>
+    <div class="div" id="TodayStopTime5"></div>
+    <div class="div" id="TodayStopTime6"></div>
+    <div class="div" id="TodayStopTime7"></div>
+    <div class="div" id="TodayStopTime8"></div>
+
+
+
+<script>
+    $(document).ready(function () {
+        //alert($(window).width());
+        //alert($(window).height());
+
+        ////加载所有方法前，
+        //$("#mian1").css("width", $(window).width());
+        //$("#main2").css("width", $(window).width());
+
+        ////$("#mian1").css("height", $(window).height());
+        //$("#main2").css("height", $(window).height() - 680);
+        SetTodayStopTime();
+
+        ServerCurrentTime();
+        SetTodayStopTime();
+        SetYearData();
+        SetDayData();
+        setOEEData("垂直线", "底注式浇注机", "CZX");
+        setOEEData("水平线", "水平浇注机", "SPX");
+        setOEEData("壳型线", "壳型线扇形浇注机", "KXX");
+        SetPourRate();
+        SetScollerData();
+        //setDefectRateData("DISA", "DISAQ1");
+        //setDefectRateData("KW", "KWQ1");
+        //setDefectRateData("KX", "KXQ1");
+        setQualifiedRate();
+        SetEquipMainData("SBXJGD", "Equip1");
+        SetEquipMainData("SBBYGD", "Equip2");
+        SetEquipMainData("SBDJGD", "Equip3");
+        SetOnePassData();
+        GetHJMList();
+        SetHJMData();
+
+        layui.use('carousel', function () {
+            var carousel = layui.carousel;
+            //建造实例
+            carousel.render({
+                elem: '#test1'
+                , width: '100%' //设置容器宽度
+                , arrow: 'always' //始终显示箭头
+                //,anim: 'updown' //切换动画方式
+                , interval: '10000' //间隔时间10秒
+            });
+        });
+
+        layui.use('carousel', function () {
+            var carousel = layui.carousel;
+            //建造实例
+            carousel.render({
+                elem: '#test2'
+                , width: '100%' //设置容器宽度
+                , arrow: 'always' //始终显示箭头
+                //,anim: 'updown' //切换动画方式
+                , interval: '10000' //间隔时间10秒
+            });
+        });
+
+
+    });
+
+    function SetYearData() {
+
+        $.ajax({
+            type: "post",
+            url: "/SDMKanban/GetYearData",
+            async: false,
+            success: function (data) {
+                var dataA = new Array();
+                dataA = data.split("|");
+
+                $("#dataNums3").rollNumDaq({
+                    deVal: dataA[0],
+                    className: 'dataNums'
+                });
+                $("#dataNums2").rollNumDaq({
+                    deVal: dataA[1],
+                    className: 'dataNums2'
+                });
+            }
+
+        });
+    }
+
+    function SetScollerData() {
+        $(".line").html("");
+        $.ajax({
+            type: "post",
+            url: "/SDMKanban/GetScollerTxt",
+            async: false,
+            success: function (data) {
+                //console.log(data);
+                $(".line").append(data);
+            }
+
+        });
+
+
+        $(".line").slideUp();
+
+        //var list = document.getElementsByTagName("li");
+        //for (var i = 0; i < list.length; i++) {
+        //    list[i].index = i;
+        //    list[i].onclick = function () {
+        //        console.log(this.index);
+        //    }
+        //}
+    }
+
+    function setOEEData(pdline, sebname, divname) {
+        var OEEValue;
+        $.ajax({
+            type: "post",
+            url: "/SDMKanban/getEquipmentOEEResult",
+            data: {
+                pdline: pdline,
+                sebname: sebname
+            },
+            async: false,
+            success: function (data) {
+                //console.log(data);
+                OEEValue = data;
+            }
+
+        });
+        var TempTitle = "";
+        if (pdline == "垂直线") {
+            TempTitle = "设备OEE";
+        }
+        option = {
+            title: {
+                text: TempTitle,
+                x: "left",
+                textStyle: {
+                    color: '#ffffff'
+                },
+                //top: 10,
+
+            },
+            tooltip: {
+                formatter: "{a}<br />{b}:{c}"
+            },
+
+            grid: {
+                //left: '3%',   //距离左边的距离
+                //right: '6%', //距离右边的距离
+                //bottom: '8%',//距离下边的距离
+                y: '20%'
+            },
+
+            series: [{
+                name: pdline,
+                type: 'gauge',
+                radius: '90%',
+                min: 0,
+                max: 100,
+                axisLine: {
+                    show: true,
+                    lineStyle: {
+                        width: 16,
+                        shadowBlur: 0,
+                        color: [[0.2, '#E43F3D'], [0.4, '#E98E2C'], [0.6, '#DDBD4D'], [0.8, '#7CBB55'], [1, '#87CEFA']]
+                    }
+                },
+
+
+                axisTick: {
+                    show: true,
+                    splitNumber: 1
+                },
+                splitLine: {
+                    show: false,
+                },
+                axisLabel: {
+                    distance: -10,
+                    textStyle: {
+                        fontSize: 10,
+                        fontWeight: ""
+                    }
+                },
+                pointer: {
+                    show: true,
+                },
+                detail: {
+                    formatter: pdline + ':' + '{value}',
+                    offsetCenter: [0, 75],
+                    textStyle: {
+                        fontSize: 20,
+                        color: '#fff'
+                    }
+                },
+                data: [{
+                    //name: pdline+"OEE",
+                    value: OEEValue
+                }]
+            }]
+        }
+
+        var myChart = echarts.init(document.getElementById(divname));
+        myChart.setOption(option);
+    }
+
+    function setDefectRateData(pdline, divname) {
+        var SeriesData = new Array();
+        var legendData = new Array();
+        $.ajax({
+            type: "post",
+            url: "/SDMKanban/getDefectRate",
+            data: {
+                pdline: pdline
+            },
+            async: false,
+            success: function (data) {
+                Jdata = JSON.parse(data);
+                //console.log(Jdata);
+                for (var i = 0; i < Jdata.length; i++) {
+
+                    var a = new Object();
+                    a.value = Jdata[i].qty;
+                    a.name = Jdata[i].spc_name;
+                    SeriesData.push(a);
+                    legendData.push(Jdata[i].spc_name);
+
+                }
+
+            }
+
+        });
+
+        var Title = "";
+        if (pdline == "KW") { Title = "水平线不良率占比"; }
+        else if (pdline == "KX") { Title = "壳形线不良率占比"; }
+        else if (pdline == "DISA") { Title = "垂直线不良率占比"; }
+
+        option = {
+            title: {
+                text: Title,
+                y: 'bottom',
+                x: 'center',
+                textStyle: {
+                    color: '#ffffff'
+                },
+            },
+            tooltip: {
+                trigger: 'item',
+                formatter: "{b}: <br />{c} ({d}%)"
+            },
+            //legend: {
+            //    orient: 'vertical',
+            //    x: 'left',
+            //    data: legendData
+            //},
+            series: [
+                {
+                    name: '缺陷数量',
+                    type: 'pie',
+                    radius: ['25%', '30%'],
+                    avoidLabelOverlap: false,
+                    label: {
+                        normal: {
+                            show: false,
+                            position: 'center'
+                        },
+                        emphasis: {
+                            show: true,
+                            textStyle: {
+                                fontSize: '15',
+                                fontWeight: 'bold'
+                            }
+                        }
+                    },
+                    labelLine: {
+                        normal: {
+                            show: false
+                        }
+                    },
+
+                    data: SeriesData
+                },
+                ,
+                {
+                    name: '当前不良率占比',
+                    type: 'pie',
+                    radius: ['20%', '25%'],
+
+                    label: {
+                        normal: {
+                            formatter: '{b}\n{d}%'
+                        },
+
+                    },
+                    data: SeriesData
+                }
+            ]
+        };
+
+        var myChart = echarts.init(document.getElementById(divname));
+        myChart.setOption(option);
+    }
+    function setQualifiedRate() {
+        var XData = new Array();
+        var Y1 = new Array();
+        var Y2 = new Array();
+        var Y3 = new Array();
+        $.ajax({
+            type: "post",
+            url: "/SDMKanban/getQualifiedRate",
+            async: false,
+            success: function (data) {
+                Jdata = JSON.parse(data);
+                //console.log(Jdata);
+                for (var i = 0; i < Jdata.length; i++) {
+                    XData.push(Jdata[i].yd_dd);
+                    Y1.push(Jdata[i].disarate);
+                    Y2.push(Jdata[i].kwrate);
+                    Y3.push(Jdata[i].kxrate);
+
+
+                }
+
+            }
+
+        });
+
+        option = {
+            title: {
+                text: '产线合格率',
+                textStyle: {
+                    color: '#ffffff'
+                }
+            },
+            tooltip: {
+                trigger: 'axis',
+                //axisPointer: {
+                //    type: 'cross',
+                //    //label: {
+                //    //    backgroundColor: '#6a7985'
+                //    //}
+                //}
+            },
+            legend: {
+                data: ['垂直线', '水平线', '壳型线'],
+                right: '10%',
+                textStyle: {
+                    color: '#ffffff'
+                },
+            },
+            //toolbox: {
+            //    feature: {
+            //        saveAsImage: {}
+            //    }
+            //},
+            grid: {
+                left: '2%',
+                right: '10%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: [
+                {
+                    type: 'category',
+                    //boundaryGap: false,
+                    axisLine: {
+                        lineStyle: {
+                            color: '#ffffff',
+                        }
+
+                    },
+                    //  改变轴字体颜色和大小
+                    axisLabel: {
+                        type: 'value',
+                        textStyle: {
+                            color: '#ffffff',
+                        },
+                    },
+                    data: XData
+                }
+            ],
+            yAxis: [
+                {
+                    name: '合格率',
+                    type: 'value',
+                    axisLabel: {
+                        formatter: '{value}%'
+                    },
+                    axisLine: {
+                        lineStyle: {
+                            color: '#B0C4DE'
+                        }
+                    },
+                    min: 80,
+                    max: 100,
+                }
+
+            ],
+            series: [
+                {
+                    name: '垂直线',
+                    type: 'line',
+
+                    //areaStyle: {},
+                    data: Y1,
+                    color: '#5793f3'
+                    //itemStyle: { normal: { label: { show: true, position: 'bottom', color: '#ffffff', rotate: true } } },
+                },
+                {
+                    name: '水平线',
+                    type: 'line',
+
+                    //areaStyle: {},
+                    data: Y2,
+                    color: '#00BFFF'
+
+                },
+                {
+                    name: '壳型线',
+                    type: 'line',
+                    color: '#B0C4DE',
+
+                    //areaStyle: {},
+                    data: Y3
+
+                }
+            ]
+        };
+
+        var myChart = echarts.init(document.getElementById("QuaifiedRate"));
+        myChart.setOption(option);
+
+
+        //var myChart = echarts.init(document.getElementById("myChart"));
+        //myChart.setOption(option);
+
+        var index = 0; //播放所在下标
+        var mTime = setInterval(function () {
+            myChart.dispatchAction({
+                type: 'showTip',
+                seriesIndex: 0,
+                dataIndex: index
+            });
+            index++;
+            if (index > Y1.length) {
+                index = 0;
+            }
+        }, 1000);
+
+    }
+
+    //每日数据，做成一个柱状图
+    function SetDayData() {
+        var Jdata;
+        var Xdata = new Array();
+        var Y1 = new Array();
+        var Y2 = new Array();
+        var Y3 = new Array();
+        var Y4 = new Array();
+        var Y5 = new Array();
+        $.ajax({
+            type: "post",
+            url: "/SDMKanban/GetCurrentDayData",
+            async: false,
+            success: function (data) {
+                Jdata = JSON.parse(data);
+                for (var i = 0; i < Jdata.length; i++) {
+                    Xdata.push(Jdata[i].pdline);
+                    Y1.push(Jdata[i].jh_qty);
+                    Y2.push(Jdata[i].sj_qty);
+                    Y3.push(Jdata[i].dun_qty);
+                    Y4.push(Jdata[i].lu_qty);
+                    Y5.push(Jdata[i].rate);
+                }
+            }
+        });
+        //console.log(Xdata);
+
+        var colors = ['#5793f3', '#00BFFF', '#675bba', '#B0C4DE'];
+
+        option = {
+            title: {
+                text: '产线日产量',
+                textStyle: {
+                    color: '#ffffff'
+                },
+            },
+            color: colors,
+
+            tooltip: {
+                //show: false,
+                trigger: 'axis',
+                //axisPointer: {
+                //    type: 'cross'
+                //},
+                formatter: function (params) {
+                    return params[0].name + "<br>" +
+                        params[0].seriesName + ":" + params[0].data + "<br>" +
+                        params[1].seriesName + ":" + params[1].data + "<br>" +
+
+                        params[2].seriesName + ":" + params[2].data + "%" + "<br>"
+                        ;
+                }
+            },
+            grid: {
+                //right: '20%',
+                left: '9%',
+                bottom: '8%'
+            },
+            toolbox: {
+                //feature: {
+                //    dataView: { show: true, readOnly: false },
+                //    restore: { show: true },
+                //    saveAsImage: { show: true }
+                //}
+            },
+            legend: {
+                data: ['计划数量', '生产箱数', '计划完成率'],
+                //x: '20%',
+                right: '10%',
+                textStyle: {
+                    color: '#ffffff'
+                },
+            },
+            xAxis: [
+                {
+                    type: 'category',
+                    axisLine: {
+                        lineStyle: {
+                            color: '#ffffff',
+                        }
+
+                    },
+                    //  改变轴字体颜色和大小
+                    axisLabel: {
+                        textStyle: {
+                            color: '#ffffff',
+                        },
+                    },
+                    data: Xdata
+                }
+            ],
+            yAxis: [
+                {
+                    type: 'value',
+                    name: '计划数量',
+                    position: 'left',
+
+                    axisLine: {
+                        lineStyle: {
+                            color: colors[0]
+                        }
+                    }
+                    //axisLabel: {
+                    //    formatter: '{value} ml'
+                    //}
+                },
+                {
+                    type: 'value',
+                    name: '计划完成率',
+
+                    position: 'right',
+                    //offset: 60,
+                    axisLine: {
+                        lineStyle: {
+                            color: '#7B68EE'
+                        }
+                    },
+                    axisLabel: {
+                        formatter: '{value} %'
+                    }
+
+                }
+
+            ],
+            series: [
+                {
+                    name: '计划箱数',
+                    type: 'bar',
+                    barWidth: 30,
+                    data: Y1,
+                    color: colors[0],
+                    itemStyle: {
+                        normal: { label: { show: true, position: 'top', color: '#ffffff' }, barBorderRadius: [100, 100, 100, 100] },
+
+                    }
+                },
+                {
+                    name: '生产箱数',
+                    type: 'bar',
+                    barWidth: 30,
+                    //yAxisIndex: 1,
+                    data: Y2,
+                    color: colors[1],
+                    itemStyle: {
+                        normal: { label: { show: true, position: 'top', color: '#ffffff' }, barBorderRadius: [100, 100, 100, 100] },
+
+                    }
+                },
+                //{
+                //    name: '生产吨数',
+                //    type: 'bar',
+                //    yAxisIndex: 2,
+                //    data: Y3,
+                //    itemStyle: { normal: { label: { show: true, position: 'top', color: '#ffffff' } } }
+                //},
+                //{
+                //    name: '炉数',
+                //    type: 'bar',
+                //    yAxisIndex: 3,
+                //    data: Y4,
+                //    itemStyle: { normal: { label: { show: true, position: 'top', color: '#ffffff' } } }
+                //},
+                {
+                    name: '计划完成率',
+                    type: 'line',
+                    yAxisIndex: 1,
+                    data: Y5,
+                    color: '#7B68EE',
+                    itemStyle: { normal: { label: { show: true, color: '#7B68EE', formatter: '{c}%' } } }
+                }
+            ]
+        };
+
+        var myChart = echarts.init(document.getElementById('DayData'));
+        myChart.setOption(option);
+    }
+
+    function SetPourRate() {
+        var Jdata;
+        var Xdata = new Array();
+        var Y1 = new Array();
+        var Y2 = new Array();
+        var Y3 = new Array();
+        $.ajax({
+            type: "post",
+            url: "/SDMKanban/GetPouringOKRate",
+            async: false,
+            success: function (data) {
+                Jdata = JSON.parse(data);
+                for (var i = 0; i < Jdata.length; i++) {
+                    Xdata.push(Jdata[i].pdline);
+                    Y1.push(Jdata[i].pouringqty);
+                    Y2.push(Jdata[i].boxqty);
+                    Y3.push(Jdata[i].rate * 100);
+                }
+            }
+        });
+        //console.log(Xdata);
+
+        var colors = ['#5793f3', '#00BFFF', '#675bba'];
+
+        option = {
+            title: {
+                text: '产线当月浇注合格率',
+                textStyle: {
+                    color: '#ffffff'
+                },
+            },
+            color: colors,
+
+            tooltip: {
+                trigger: 'axis',
+                //axisPointer: {
+                //    type: 'cross'
+                //},
+                formatter: function (params) {
+                    return params[0].name + "<br>" +
+                        params[0].seriesName + ":" + params[0].data + "<br>" +
+                        params[1].seriesName + ":" + params[1].data + "<br>" +
+                        params[2].seriesName + ":" + params[2].data + "%" + "<br>"
+                        ;
+                }
+            },
+            grid: {
+                bottom: '8%'
+            },
+            toolbox: {
+                //feature: {
+                //    dataView: { show: true, readOnly: false },
+                //    restore: { show: true },
+                //    saveAsImage: { show: true }
+                //}
+            },
+            legend: {
+                data: ['浇注数', '装箱数', '合格率'],
+                right: '10%',
+                textStyle: {
+                    color: '#ffffff'
+                },
+            },
+            xAxis: [
+                {
+                    type: 'category',
+                    axisTick: {
+                        alignWithLabel: true
+                    },
+                    axisLine: {
+                        lineStyle: {
+                            color: '#ffffff',
+                        }
+
+                    },
+                    //  改变轴字体颜色和大小
+                    axisLabel: {
+                        textStyle: {
+                            color: '#ffffff',
+                        },
+                    },
+                    data: Xdata
+                }
+            ],
+            yAxis: [
+                {
+                    type: 'value',
+                    name: '浇注数/装箱数',
+                    position: 'left',
+                    axisLine: {
+                        lineStyle: {
+                            color: colors[0]
+                        }
+                    }
+                },
+                {
+                    type: 'value',
+                    name: '合格率',
+                    position: 'right',
+
+                    axisLine: {
+                        lineStyle: {
+                            color: "#7B68EE"
+                        }
+                    },
+                    axisLabel: {
+                        formatter: '{value}%'
+                    }
+
+                }
+
+            ],
+            series: [
+                {
+                    name: '浇注数',
+                    type: 'bar',
+                    data: Y1,
+                    barWidth: 30,
+                    itemStyle: { normal: { label: { show: true, position: 'top', color: '#ffffff' }, barBorderRadius: [100, 100, 100, 100] } },
+                },
+                {
+                    name: '装箱数',
+                    type: 'bar',
+                    barWidth: 30,
+                    //yAxisIndex: 1,
+                    data: Y2,
+                    itemStyle: { normal: { label: { show: true, position: 'top', color: '#ffffff' }, barBorderRadius: [100, 100, 100, 100] } },
+                },
+                {
+                    name: '合格率',
+                    type: 'line',
+                    yAxisIndex: 1,
+                    data: Y3,
+                    itemStyle: { normal: { color: "#7B68EE", label: { show: true, color: 'auto', formatter: '{c}%' } } },
+
+                    tooltip: { formatter: '{c1}%' }
+                }
+            ]
+        };
+
+        var myChart = echarts.init(document.getElementById('PourRate'));
+        myChart.setOption(option);
+    }
+
+    function SetEquipMainData(YWBType, divname) {
+        var Xdata = new Array();
+        var Y1 = new Array();
+        var Y2 = new Array();
+        var Y3 = new Array();
+        $.ajax({
+            type: "post",
+            url: "/SDMKanban/getEquipmentYWBResult",
+            data: { YWBType: YWBType },
+            async: false,
+            success: function (data) {
+                if (data == "") {
+                    return false;
+                }
+                Jdata = JSON.parse(data);
+
+                for (var i = 0; i < Jdata.length; i++) {
+                    Xdata.push(Jdata[i].pdline);
+                    Y1.push(Jdata[i].allcount);
+                    Y2.push(Jdata[i].tcount);
+                    Y3.push(Jdata[i].rate);
+                }
+            }
+        });
+
+        var Title = "";
+        if (YWBType == "SBXJGD") { Title = "设备巡检完成情况"; }
+        else if (YWBType == "SBBYGD") { Title = "设备保养完成情况"; }
+        else if (YWBType == "SBDJGD") { Title = "设备点检完成情况"; }
+
+        option = {
+            title: {
+                text: Title,
+                textStyle: {
+                    color: '#ffffff'
+                },
+            },
+            tooltip: {
+                trigger: 'axis',
+                //axisPointer: {
+                //    type: 'cross',
+                //    crossStyle: {
+                //        color: '#999'
+                //    }
+                //}
+            },
+            toolbox: {
+                //feature: {
+                //    dataView: { show: false, readOnly: false },
+                //    magicType: { show: true, type: ['line', 'bar'] },
+                //    restore: { show: true },
+                //    saveAsImage: { show: true }
+                //}
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+
+                containLabel: true
+            },
+            legend: {
+                data: ['计划数量', '完成数量', '完成率'],
+                right: '10%',
+                textStyle: {
+                    color: '#ffffff'
+                },
+            },
+            xAxis: [
+                {
+                    type: 'category',
+                    data: Xdata,
+                    axisPointer: {
+                        type: 'shadow'
+                    },
+                    axisLine: {
+                        lineStyle: {
+                            color: '#ffffff',
+                        }
+
+                    },
+                    //  改变轴字体颜色和大小
+                    axisLabel: {
+                        textStyle: {
+                            color: '#ffffff',
+                        },
+                    },
+                }
+            ],
+            yAxis: [
+                {
+                    type: 'value',
+                    name: '数量',
+                    min: 0,
+                    axisLine: {
+                        lineStyle: {
+                            color: '#B0C4DE'
+                        }
+                    }
+                    //,
+                    //max: $scope.max[0],
+                    //interval: $scope.min[0]
+
+                },
+                {
+                    type: 'value',
+                    name: '完成率',
+                    min: 0,
+                    max: 100,
+                    interval: 10,
+                    axisLabel: {
+                        formatter: '{value} %'
+                    },
+                    axisLine: {
+                        lineStyle: {
+                            color: '#7B68EE'
+                        }
+                    }
+                }
+            ],
+            series: [
+                {
+                    name: '计划数量',
+                    type: 'pictorialBar',
+                    symbol: 'path://d="M150 0 L75 200 L225 200 Z"',
+                    data: Y1,
+                    color: '#5793f3',
+                    itemStyle: { normal: { label: { show: true, position: 'top', color: '#ffffff' } } }
+                },
+                {
+                    name: '完成数量',
+                    type: 'pictorialBar',
+                    symbol: 'path://d="M150 0 L75 200 L225 200 Z"',
+                    data: Y2,
+                    color: '#00BFFF',
+                    itemStyle: { normal: { label: { show: true, position: 'top', color: '#ffffff' } } }
+                },
+                {
+                    name: '完成率',
+                    type: 'line',
+                    yAxisIndex: 1,
+                    data: Y3,
+                    color: '#7B68EE',
+                    itemStyle: { normal: { label: { show: true, position: 'right', color: '#ffffff', formatter: '{c}%' } } }
+                }
+            ]
+        };
+
+        var myChart = echarts.init(document.getElementById(divname));
+        myChart.setOption(option);
+    }
+
+    function SetOnePassData() {
+        var X1 = new Array();
+        var X2 = new Array();
+        var X3 = new Array();
+
+        var Y1 = new Array();
+        var Y2 = new Array();
+        var Y3 = new Array();
+        $.ajax({
+            type: "post",
+            url: "/SDMKanban/getZCPASSrate",
+            async: false,
+            success: function (data) {
+                if (data == "") {
+                    return false;
+                }
+                Jdata = JSON.parse(data);
+
+                for (var i = 0; i < Jdata.length; i++) {
+                    if (Jdata[i].pdline == "水平线") {
+                        X1.push(Jdata[i].zc_name);
+                        Y1.push(Jdata[i].passrate * 100);
+                    }
+                    else if (Jdata[i].pdline == "垂直线") {
+                        X2.push(Jdata[i].zc_name);
+                        Y2.push(Jdata[i].passrate * 100);
+                    }
+                    else if (Jdata[i].pdline == "壳型线") {
+                        X3.push(Jdata[i].zc_name);
+                        Y3.push(Jdata[i].passrate * 100);
+                    }
+                }
+
+            }
+        });
+        //console.log(X1);
+        //console.log(Y1);
+        option1 = {
+            title: {
+                text: '水平线工序一次完成率',
+                textStyle: {
+                    color: '#ffffff'
+                },
+            },
+            color: ['#3398DB'],
+            tooltip: {
+                trigger: 'axis',
+                //axisPointer: {            // 坐标轴指示器，坐标轴触发有效
+                //    type: 'shadow'        // 默认为直线，可选为：'line' | 'shadow'
+                //}
+            },
+            grid: {
+                left: '9%',
+                right: '8%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: [
+                {
+                    type: 'category',
+                    data: X1,
+                    axisTick: {
+                        alignWithLabel: true
+                    },
+                    boundaryGap: false,
+                    axisLine: {
+                        lineStyle: {
+                            color: '#ffffff',
+                        }
+
+                    },
+                    //  改变轴字体颜色和大小
+                    axisLabel: {
+                        textStyle: {
+                            color: '#ffffff',
+                        },
+                    },
+                }
+            ],
+            yAxis: [
+                {
+                    type: 'value',
+                    axisLabel: {
+                        formatter: '{value} %'
+                    },
+                    axisLine: {
+                        lineStyle: {
+                            color: '#B0C4DE'
+                        }
+                    }
+                }
+
+            ],
+            series: [
+                {
+                    //name: '水平线工序一次完成率',
+                    type: 'line',
+                    barWidth: '60%',
+                    data: Y1,
+                    itemStyle: { normal: { label: { show: true, position: 'top', color: '#ffffff', formatter: '{c}%' }, areaStyle: { type: 'default' } } }
+                }
+            ]
+        };
+
+        option2 = {
+            title: {
+                text: '垂直线工序一次完成率',
+                textStyle: {
+                    color: '#ffffff'
+                },
+            },
+            color: ['#3398DB'],
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {            // 坐标轴指示器，坐标轴触发有效
+                    type: 'shadow'        // 默认为直线，可选为：'line' | 'shadow'
+                }
+            },
+            grid: {
+                left: '9%',
+                right: '8%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: [
+                {
+                    type: 'category',
+                    data: X2,
+                    boundaryGap: false,
+                    axisTick: {
+                        alignWithLabel: true
+                    },
+                    axisLine: {
+                        lineStyle: {
+                            color: '#ffffff',
+                        }
+
+                    },
+                    //  改变轴字体颜色和大小
+                    axisLabel: {
+                        textStyle: {
+                            color: '#ffffff',
+                        },
+                    },
+                }
+            ],
+            yAxis: [
+                {
+                    type: 'value',
+                    axisLabel: {
+                        formatter: '{value} %'
+                    },
+                    axisLine: {
+                        lineStyle: {
+                            color: '#B0C4DE'
+                        }
+                    }
+                }
+            ],
+            series: [
+                {
+                    //name: '水平线工序一次完成率',
+                    type: 'line',
+                    barWidth: '60%',
+                    data: Y2,
+                    itemStyle: { normal: { label: { show: true, position: 'top', color: '#ffffff', formatter: '{c}%' }, areaStyle: { type: 'default' } } }
+                }
+            ]
+        };
+
+        option3 = {
+            title: {
+                text: '壳型线工序一次完成率',
+                textStyle: {
+                    color: '#ffffff'
+                },
+            },
+            color: ['#3398DB'],
+            tooltip: {
+                trigger: 'axis',
+                //axisPointer: {            // 坐标轴指示器，坐标轴触发有效
+                //    type: 'shadow'        // 默认为直线，可选为：'line' | 'shadow'
+                //}
+            },
+            grid: {
+                left: '9%',
+                right: '8%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: [
+                {
+                    type: 'category',
+                    data: X3,
+                    boundaryGap: false,
+                    axisTick: {
+                        alignWithLabel: true
+                    },
+                    axisLine: {
+                        lineStyle: {
+                            color: '#ffffff',
+                        }
+
+                    },
+                    axisLabel: {
+                        textStyle: {
+                            color: '#ffffff',
+                        },
+                    },
+                }
+
+                //  改变轴字体颜色和大小
+
+            ],
+            yAxis: [
+                {
+                    type: 'value',
+                    axisLabel: {
+                        formatter: '{value} %'
+                    },
+                    axisLine: {
+                        lineStyle: {
+                            color: '#B0C4DE'
+                        }
+                    }
+                },
+            ],
+            series: [
+                {
+                    //name: '水平线工序一次完成率',
+                    type: 'line',
+                    barWidth: '60%',
+                    data: Y3,
+                    itemStyle: { normal: { label: { show: true, position: 'top', color: '#ffffff', formatter: '{c}%' }, areaStyle: { type: 'default' } } }
+                }
+            ]
+        };
+
+
+        var myChart = echarts.init(document.getElementById('SPONEPASS'));
+        myChart.setOption(option1);
+
+
+        var myChart2 = echarts.init(document.getElementById('DISAONEPASS'));
+        myChart2.setOption(option2);
+
+        var myChart3 = echarts.init(document.getElementById('KXONEPASS'));
+        myChart3.setOption(option3);
+    }
+
+    function SetTodayStopTime() {
+        var Xdata = new Array();
+        var Ydata = new Array();
+
+        $.ajax({
+            type: "post",
+            url: "/SDMKanban/getPDLINESTOPTIME",
+            async: false,
+            success: function (data) {
+                if (data == "") {
+                    return false;
+                }
+                Jdata = JSON.parse(data);
+                //Templegend.push(Jdata[0].dev_name);
+                for (var i = 0; i < Jdata.length; i++) {
+                    Xdata.push(Jdata[i].pdline);
+                    Ydata.push(Jdata[i].stoptime);
+                }
+            }
+        });
+
+        option = {
+            title: {
+                text: '今日停机时长',
+                textStyle: {
+                    color: '#ffffff'
+                },
+            },
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'shadow'
+                }
+            },
+            legend: {
+                data: ['停机时长'],
+                textStyle: {
+                    color: '#ffffff'
+                },
+                right: '10%',
+            },
+            grid: {
+                left: '3%',
+                right: '6%',
+                bottom: '3%',
+                containLabel: true
+            },
+            xAxis: {
+                splitLine: { show: false },//去除网格线
+                type: 'value',
+                boundaryGap: [0, 0.01],
+                axisLine: {
+                    lineStyle: {
+                        color: '#ffffff',
+                    }
+
+                },
+                //  改变轴字体颜色和大小
+                axisLabel: {
+                    textStyle: {
+                        color: '#ffffff',
+                        formatter: '{value}min'
+                    },
+                },
+            },
+            yAxis: {
+                type: 'category',
+                data: Xdata,
+                axisLine: {
+                    lineStyle: {
+                        color: '#B0C4DE'
+                    }
+                },
+                splitLine: { show: false },//去除网格线
+                //axisLabel: {
+                //    color: '#B0C4DE',
+                //    formatter: '{value}min'
+                //}
+            },
+            series: [
+                {
+                    name: '停机时长',
+                    type: 'pictorialBar',
+                    symbol: 'rect',
+                    "symbolRepeat": true, // "fixed",
+                    "symbolMargin": "5%",
+                    "symbolClip": true,
+                    "symbolSize": 22.5,
+                    // "symbolPosition": "start",
+                    //"symbolOffset": [
+                    //    20,
+                    //    0],
+                    data: Ydata,
+                    color: '#5793f3',
+                    itemStyle: { normal: { label: { show: true, position: 'inside', color: '#ffffff', formatter: '{c} min' } } }
+                }
+            ]
+        };
+        var myChart = echarts.init(document.getElementById('TodayStopTime'));
+        myChart.setOption(option);
+    }
+
+    var HJMlist = new Array();
+    function GetHJMList() {
+        $.ajax({
+            type: "post",
+            url: "/SDMKanban/getHJMList",
+            async: false,
+            success: function (data) {
+                if (data == "") {
+                    return false;
+                }
+                Jdata = JSON.parse(data);
+                for (var i = 0; i < Jdata.length; i++) {
+                    HJMlist.push(Jdata[i].dev_id);
+                }
+            }
+        });
+    }
+    function SetHJMData() {
+
+        option = {
+            title: {
+                text: '环境猫环境监控',
+                textStyle: {
+                    color: '#ffffff'
+                },
+            },
+            tooltip: {
+                trigger: 'axis',
+                //axisPointer: {
+                //    type: 'cross',
+                //    crossStyle: {
+                //        color: '#999'
+                //    }
+                //}
+            },
+            grid: {
+                left: '10%',
+                right: '1%',
+                bottom: '3%',
+
+                containLabel: true
+            },
+            xAxis: {
+                type: 'category',
+                data: [],
+                //axisLine: {
+                //    lineStyle: {
+                //        color: '#ffffff',
+                //    }
+
+                //},
+                ////  改变轴字体颜色和大小
+                //axisLabel: {
+                //    textStyle: {
+                //        color: '#ffffff',
+                //    },
+                //},
+            },
+            legend: {
+                data: ['湿度', '温度'],
+                textStyle: {
+                    color: '#ffffff'
+                },
+                right: '10%',
+            },
+            yAxis: [{
+                type: 'value',
+                name: '湿度',
+                //min: 'dataMin',
+                offset: 0,
+                position: 'left',
+                axisLabel: {
+                    formatter: '{value} %'
+                },
+                axisLine: {
+                    lineStyle: {
+                        color: '#B0C4DE'
+                    }
+                }
+
+            },
+            {
+                type: 'value',
+                name: '温度',
+                position: 'right',
+                //min: 'dataMin',
+                axisLabel: {
+                    formatter: '{value} ℃'
+                },
+                axisLine: {
+                    lineStyle: {
+                        color: '#B0C4DE'
+                    }
+                }
+            }
+            ],
+            series: [{
+                data: [],
+                type: 'line'
+            }]
+        };
+        var myChart = echarts.init(document.getElementById('HJMData'));
+        myChart.setOption(option, true);
+        //console.log(HJMlist);
+        //设置轮播，每隔5秒换一个环境猫设备
+        var index = 0; //播放所在下标
+
+        var TempSeries = new Array();
+        var SeriesObject = new Object();
+
+        var SeriesObjectData = new Array();
+        var SeriesObjectT = new Object();
+        var SeriesObjectDataT = new Array();
+        var xAxisObject = new Object();
+        var xAxisObjectData = new Array();
+
+        var Templegend = new Array();
+
+        var Temptitle = new Object();
+
+
+        var ColorObject = new Object();
+
+        var lineStyle = new Object();
+        var textStyle = new Object();
+
+        $.ajax({
+            type: "post",
+            url: "/SDMKanban/getHJMData",
+            data: { HJMID: HJMlist[index] },
+            async: false,
+            success: function (data) {
+                if (data == "") {
+                    return false;
+                }
+                Jdata = JSON.parse(data);
+                //Templegend.push(Jdata[0].dev_name);
+                for (var i = 0; i < Jdata.length; i++) {
+                    xAxisObjectData.push(Jdata[i].newtime)
+                    SeriesObjectData.push(Jdata[i].h);
+                    SeriesObjectDataT.push(Jdata[i].t);
+                }
+
+                Temptitle.text = '车间环境-' + Jdata[0].dev_name;
+                ColorObject.color = "#fff";
+                Temptitle.textStyle = ColorObject;
+                lineStyle.color = "#FFFFFF";
+                textStyle.color = "#FFFFFF";
+
+
+                xAxisObject.type = 'category';
+                xAxisObject.data = xAxisObjectData;
+                xAxisObject.axisLine = new Object();
+                xAxisObject.axisLine.lineStyle = lineStyle;
+                xAxisObject.axisLabel = textStyle;
+
+                SeriesObject.name = '湿度';
+                SeriesObject.type = 'line';
+                SeriesObject.color = '#5a9ddd';
+                SeriesObject.data = SeriesObjectData;
+
+                SeriesObjectT.name = '温度';
+                SeriesObjectT.yAxisIndex = 1;
+                SeriesObjectT.color = '#00BFFF';
+                SeriesObjectT.type = 'line';
+                SeriesObjectT.data = SeriesObjectDataT;
+
+                TempSeries.push(SeriesObject);
+                TempSeries.push(SeriesObjectT);
+
+
+                option.title = Temptitle;
+                option.xAxis = xAxisObject;
+                //option.legend = ["环境猫"];
+                option.series = TempSeries;
+                //console.log(option);
+                myChart.setOption(option, true);
+            }
+        });
+
+
+        index++;
+        if (index > HJMlist.length) {
+            index = 0;
+        }
+
+        var mTime = setInterval(function () {
+            var TempSeries = new Array();
+            var SeriesObject = new Object();
+
+            var SeriesObjectData = new Array();
+            var SeriesObjectT = new Object();
+            var SeriesObjectDataT = new Array();
+            var xAxisObject = new Object();
+            var xAxisObjectData = new Array();
+
+            var Templegend = new Array();
+
+            var Temptitle = new Object();
+
+            var ColorObject = new Object();
+
+            var lineStyle = new Object();
+            var textStyle = new Object();
+
+            $.ajax({
+                type: "post",
+                url: "/SDMKanban/getHJMData",
+                data: { HJMID: HJMlist[index] },
+                async: false,
+                success: function (data) {
+                    if (data == "") {
+                        return false;
+                    }
+                    Jdata = JSON.parse(data);
+                    //Templegend.push(Jdata[0].dev_name);
+                    for (var i = 0; i < Jdata.length; i++) {
+                        xAxisObjectData.push(Jdata[i].newtime)
+                        SeriesObjectData.push(Jdata[i].h);
+                        SeriesObjectDataT.push(Jdata[i].t);
+                    }
+                    ColorObject.color = "#fff";
+                    Temptitle.text = '车间环境-' + Jdata[0].dev_name;
+                    Temptitle.textStyle = ColorObject;
+
+                    lineStyle.color = "#FFFFFF";
+                    textStyle.color = "#FFFFFF";
+
+
+                    xAxisObject.type = 'category';
+                    xAxisObject.data = xAxisObjectData;
+                    xAxisObject.axisLine = new Object();
+                    xAxisObject.axisLine.lineStyle = lineStyle;
+
+                    xAxisObject.axisLabel = textStyle;
+
+                    SeriesObject.name = '湿度';
+                    SeriesObject.type = 'line';
+                    SeriesObject.color = '#5a9ddd';
+                    SeriesObject.data = SeriesObjectData;
+
+                    SeriesObjectT.name = '温度';
+                    SeriesObjectT.yAxisIndex = 1;
+                    SeriesObjectT.color = '#00BFFF';
+                    SeriesObjectT.type = 'line';
+                    SeriesObjectT.data = SeriesObjectDataT;
+
+                    TempSeries.push(SeriesObject);
+                    TempSeries.push(SeriesObjectT);
+
+
+                    option.title = Temptitle;
+                    option.xAxis = xAxisObject;
+                    //option.legend = ["环境猫"];
+                    option.series = TempSeries;
+
+                    myChart.setOption(option, true);
+                }
+            });
+
+
+            index++;
+            if (index > HJMlist.length) {
+                index = 0;
+            }
+        }, 5000);
+
+    }
+
+
+
+    //定时获取当前时间
+    function ServerCurrentTime() {
+        var now = new Date();
+        var year = now.getFullYear();
+        var month = now.getMonth();
+        var date = now.getDate();
+        var day = now.getDay();
+        var hour = now.getHours();
+        var minu = now.getMinutes();
+        var sec = now.getSeconds();
+        var week;
+        month = month + 1;
+        if (month < 10) month = "0" + month;
+        if (date < 10) date = "0" + date;
+        if (hour < 10) hour = "0" + hour;
+        if (minu < 10) minu = "0" + minu;
+        if (sec < 10) sec = "0" + sec;
+        var arr_week = new Array("星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六");
+        week = arr_week[day];
+        var time = "";
+        time = year + "年" + month + "月" + date + "日" + " " + hour + ":" + minu + ":" + sec;
+        $("#CurrentTime").text(time);
+        var timer = setTimeout("ServerCurrentTime()", 1000);
+    }
+</script>

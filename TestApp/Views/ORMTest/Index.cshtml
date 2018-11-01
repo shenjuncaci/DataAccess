@@ -1,0 +1,160 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+
+}
+
+<link href="~/Scripts/JQGrid/css/ui.jqgrid.css" rel="stylesheet" />
+<link href="~/Content/jquery-ui-1.12.1.custom/jquery-ui.css" rel="stylesheet" />
+
+<script src="~/Scripts/JQGrid/js/jquery-1.11.0.min.js"></script>
+<script src="~/Scripts/JQGrid/js/jquery.jqGrid.js"></script>
+<script src="~/Content/jquery-ui-1.12.1.custom/jquery-ui.js"></script>
+<script src="~/Scripts/JQGrid/js/i18n/grid.locale-cn.js"></script>
+
+<script src="~/Scripts/JQGrid/jqGridexpand.js"></script>
+<script src="~/Scripts/FrameWork.js"></script>
+
+<link href="~/Scripts/jquery.layer/theme/default/layer.css" rel="stylesheet" />
+<script src="~/Scripts/jquery.layer/layer.js"></script>
+
+
+<script src="~/Scripts/Validator.js"></script>
+
+<script src="~/Scripts/datepicker/WdatePicker.js"></script>
+
+<h2>JqGrid演示</h2>
+
+
+
+
+
+<script>
+    $(document).ready(function () {
+
+        GetGrid();
+    });
+        //加载表格
+    function GetGrid() {
+        var SelectRowIndx;
+        jQuery("#gridTable").jqGrid({
+            url: "@Url.Content("~/ORMTest/GridPageListJson")",
+            datatype: "json",
+            height: $(window).height() - 280,
+            autowidth: true,
+            colModel: [
+                { label: '主键', name: 'id', index: 'id', width: 80, align: 'left', hidden: true },
+                { label: '设备ID', name: 'dev_id', index: 'dev_id', width: 150, align: 'left' },
+                { label: '设备URL', name: 'dev_url', index: 'dev_url', width: 300, align: 'left' },
+
+            ],
+            viewrecords: true,
+            rowNum: 15,
+            rowList: [15, 30, 100, 500],
+            pager: "#gridPager",
+            sortname: 'id',
+            sortorder: 'desc',
+            rownumbers: true,
+            shrinkToFit: false,
+            gridview: true,
+            multiselect: true,
+            //cellattr: addCellAttr,
+
+            // useColSpanStyle:true,
+            //onSelectRow: function () {
+            //    SelectRowIndx = GetJqGridRowIndx("#" + this.id);
+            //},
+            gridComplete: function () {
+                //LoadViewList();
+                $("#" + this.id).jqGrid('setSelection', SelectRowIndx);
+            }
+        });
+        //columnModelData("#gridTable");
+        //自应高度
+        $(window).resize(function () {
+            $("#gridTable").setGridHeight($(window).height() - 280);
+        });
+
+    }
+
+    function windowload() {
+        $("#gridTable").trigger("reloadGrid"); //重新载入
+    }
+
+    function GetChecked() {
+        var temp = GetJqGridRowIndx("#gridTable");
+        alert(temp);
+    }
+
+    function GetCustom() {
+        var temp = GetJqGridRowValue("#gridTable", "mainid");
+        alert(temp);
+    }
+
+    function insert() {
+        layer.open({
+            type: 2,  //2表示ifrmae弹出层
+            title: '明细窗口',
+            maxmin: true,
+            shadeClose: true, //点击遮罩关闭层
+            area: ['550px', '350px'],
+            content: '/ORMTest/Form',
+            btn: ['确认', '取消'],
+            yes: function (index, layero) {
+                //按钮【按钮一】的回调
+                //layero.AcceptClick();
+                var iframeWin = window[layero.find('iframe')[0]['name']]; //得到iframe页的窗口对象，执行iframe页的方法：iframeWin.method();
+
+                //调用授权提交方法
+                var flag = iframeWin.AcceptClick();
+                //return flag;
+            },
+            btn2: function (index, layero) {
+                //按钮【按钮二】的回调
+
+                //return false 开启该代码可禁止点击该按钮关闭
+                layer.close(index);
+            },
+            end: function () {     //窗口关闭事件
+                temp = 0;
+            }
+        });
+    }
+
+    function edit() {
+        layer.open({
+            type: 2,  //2表示ifrmae弹出层
+            title: '明细窗口',
+            maxmin: true,
+            shadeClose: true, //点击遮罩关闭层
+            area: ['550px', '350px'],
+            content: '/ORMTest/Form?id=' + GetJqGridRowValue("#gridTable", "id"),
+            btn: ['确认', '取消'],
+            yes: function (index, layero) {
+                //按钮【按钮一】的回调
+                //layero.AcceptClick();
+                var iframeWin = window[layero.find('iframe')[0]['name']]; //得到iframe页的窗口对象，执行iframe页的方法：iframeWin.method();
+
+                //调用授权提交方法
+                var flag = iframeWin.AcceptClick();
+                //return flag;
+            },
+            btn2: function (index, layero) {
+                //按钮【按钮二】的回调
+
+                //return false 开启该代码可禁止点击该按钮关闭
+                layer.close(index);
+            },
+            end: function () {     //窗口关闭事件
+                temp = 0;
+            }
+        });
+    }
+</script>
+
+<button onclick="GetChecked()">获取选中项</button>
+<button onclick="GetCustom()">获取自定义项</button>
+<button onclick="insert()">新增</button>
+<button onclick="edit()">编辑</button>
+<table id="gridTable"></table>
+<div id="gridPager"></div>
