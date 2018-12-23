@@ -26,6 +26,12 @@ namespace SendEmailApp
             get { return ConfigurationManager.AppSettings["MailServerFrom"]; }
         }
 
+        //邮箱密码
+        public static string MailPassword
+        {
+            get { return ConfigurationManager.AppSettings["MailPassword"]; }
+        }
+
         //系统调试时收件地址
         public static string DebugMail
         {

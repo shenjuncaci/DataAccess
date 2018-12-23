@@ -1,6 +1,6 @@
 ﻿<html>
 <head>
-    <title>分成审核预警通知</title>
+    <title>GP12不合格品报警</title>
     <style type="text/css">
         body {
             font-family: Arial,"宋体";
@@ -8,16 +8,47 @@
             font-weight: normal;
             color: #666666;
         }
+
+        table {
+            font-family: verdana,arial,sans-serif;
+            font-size: 11px;
+            color: #333333;
+            border-width: 1px;
+            border-color: #666666;
+            border-collapse: collapse;
+        }
+
+            table th {
+                border-width: 1px;
+                padding: 8px;
+                border-style: solid;
+                border-color: #666666;
+                background-color: #dedede;
+            }
+
+            table td {
+                border-width: 1px;
+                padding: 8px;
+                border-style: solid;
+                border-color: #666666;
+                background-color: #ffffff;
+            }
     </style>
 </head>
 <body bgcolor="#F6FAFB">
-    <p>[$ename] 您好，</p>
-    <p> 
+    <p><strong> [$ename] 您好，</strong></p>
+    <p>
 
-        您在 [$sdate] 至 [$edate] 还未进行分层审核《[$course]》，请注意不要忘记。 [$point]。
-        <br><br>
-        感谢您的支持，请<a href='[$link]'>点击此处</a>登陆系统，查看您的审核计划。
-    </p> 
+        以下为截止至[$date],[$level]级预警 [$qianzhui]的不合格数据，请注意查看
+        <br>
+        <b>GP12待处理分工厂分工序告警汇总表</b>
+        <br>
+        [$table1]
+        <br>
+        <b>GP12待处理分工厂分工序分班次告警汇总表</b>
+        <br>
+        [$table2]
+    </b> 
     <br><br>
     <p>    系统邮件，请勿回复！</p>
 </body>

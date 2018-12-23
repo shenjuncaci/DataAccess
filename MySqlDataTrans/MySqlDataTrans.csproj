@@ -35,10 +35,6 @@
     <Reference Include="DataAccess">
       <HintPath>..\DataAccess\bin\Debug\DataAccess.dll</HintPath>
     </Reference>
-    <Reference Include="IrisSkin4, Version=2006.3.22.45, Culture=neutral, PublicKeyToken=127be25a6db25e07, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Debug\IrisSkin4.dll</HintPath>
-    </Reference>
     <Reference Include="MySql.Data">
       <HintPath>..\DataAccess\bin\Debug\MySql.Data.dll</HintPath>
     </Reference>

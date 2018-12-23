@@ -32,7 +32,7 @@
             this.button1 = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
-            this.skinEngine1 = new Sunisoft.IrisSkin.SkinEngine();
+            //this.skinEngine1 = new Sunisoft.IrisSkin.SkinEngine();
             this.SuspendLayout();
             // 
             // button1
@@ -62,12 +62,12 @@
             // 
             // skinEngine1
             // 
-            this.skinEngine1.@__DrawButtonFocusRectangle = true;
-            this.skinEngine1.DisabledButtonTextColor = System.Drawing.Color.Gray;
-            this.skinEngine1.DisabledMenuFontColor = System.Drawing.SystemColors.GrayText;
-            this.skinEngine1.InactiveCaptionColor = System.Drawing.SystemColors.InactiveCaptionText;
-            this.skinEngine1.SerialNumber = "";
-            this.skinEngine1.SkinFile = null;
+            //this.skinEngine1.@__DrawButtonFocusRectangle = true;
+            //this.skinEngine1.DisabledButtonTextColor = System.Drawing.Color.Gray;
+            //this.skinEngine1.DisabledMenuFontColor = System.Drawing.SystemColors.GrayText;
+            //this.skinEngine1.InactiveCaptionColor = System.Drawing.SystemColors.InactiveCaptionText;
+            //this.skinEngine1.SerialNumber = "";
+            //this.skinEngine1.SkinFile = null;
             // 
             // Form1
             // 
@@ -88,7 +88,7 @@
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Timer timer1;
-        private Sunisoft.IrisSkin.SkinEngine skinEngine1;
+        //private Sunisoft.IrisSkin.SkinEngine skinEngine1;
     }
 }
 

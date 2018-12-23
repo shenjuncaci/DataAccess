@@ -24,9 +24,9 @@ namespace MySqlDataTrans
         public Form1()
         {
             InitializeComponent();
-            //皮肤美化
-            this.skinEngine1 = new Sunisoft.IrisSkin.SkinEngine(((System.ComponentModel.Component)(this)));
-            this.skinEngine1.SkinFile = Application.StartupPath + "//DeepCyan.ssk";
+            ////皮肤美化
+            //this.skinEngine1 = new Sunisoft.IrisSkin.SkinEngine(((System.ComponentModel.Component)(this)));
+            //this.skinEngine1.SkinFile = Application.StartupPath + "//DeepCyan.ssk";
 
 
             string sql = " select max(UPDATE_TIME) from t_statistic ";

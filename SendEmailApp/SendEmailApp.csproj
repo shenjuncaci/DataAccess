@@ -31,6 +31,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>genyee.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="IrisSkin4, Version=2006.3.22.45, Culture=neutral, PublicKeyToken=127be25a6db25e07, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -60,6 +63,7 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="MailHelperDTO.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Form1.resx">
@@ -91,7 +95,14 @@
     <Folder Include="Models\" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="genyee.ico" />
     <Content Include="MailTemplate\test.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Repository\Repository.csproj">
+      <Project>{36793057-406C-40C3-9657-DCBE4C6F336A}</Project>
+      <Name>Repository</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
