@@ -29,13 +29,13 @@ namespace SendEmailApp
             ////dateTimePicker1.Format = DateTimePickerFormat.Time;
             //dateTimePicker1.ShowUpDown = true;
 
-            this.SenderTimer.Enabled = true;
-            //设置定时器间隔
-            this.SenderTimer.Interval = 1000 * 60*5;
+           
 
             this.label2.Text = ConfigurationManager.AppSettings["labelText"];
             this.label2.BackColor = Color.Transparent;
             this.label2.Parent = pictureBox1;
+            this.textBox1.Text = "1";
+            this.label4.Text = "服务尚未成功";
         }
         #region 功能代码，将窗口最小化到右下角，右键关闭才退出
         private void Form1_Resize_1(object sender, EventArgs e)
@@ -163,6 +163,7 @@ namespace SendEmailApp
         private void button1_Click(object sender, EventArgs e)
         {
             BindData();
+            dtList = new List<DataTable>();
             //测试一条数据看看
             //SendMail("991011509@qq.com","shenjun","2018-1-1",huizongshuju(),mingxishuju());
             string tt1 = DateTime.Now.ToString("H:mm");
@@ -182,13 +183,23 @@ namespace SendEmailApp
 
         public bool IsSame(DataTable dt1, DataTable dt2)
         {
-            DataTable dt3 = new DataTable();
-            dt3.Merge(dt1);
-            dt3.AcceptChanges();
+            //DataTable dt3 = new DataTable();
+            //dt3.Merge(dt1);
+            //dt3.AcceptChanges();
 
-            dt3.Merge(dt2);
-            DataTable dt4 = dt3.GetChanges();
-            return dt4 == null || dt4.Rows.Count == 0;
+            //dt3.Merge(dt2);
+            //DataTable dt4 = dt3.GetChanges();
+            //return dt4 == null || dt4.Rows.Count == 0;
+            IEnumerable<DataRow> query2 = dt1.AsEnumerable().Except(dt2.AsEnumerable(), DataRowComparer.Default);
+
+            if (query2.Count() > 0)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
         }
 
         //根据策略处理邮件
@@ -196,19 +207,11 @@ namespace SendEmailApp
         {
             //第一步，找到预警消息的条件
             string sql = @"---预警人员和条件
-with temp as
-(
-SELECT   ManufacturPlant,sCodeID,scodename,sParentCodeID,sParentCodeName,IsSort,sCodeNum
-FROM      Sta_CodeCenter
-WHERE   (sModule IN ('63', '62')) and winform='DefectWarnSet'
---ORDER BY sModule
-)
-SELECT   a.ManufacturPlant,a.sCodeID,a.scodename,a.sParentCodeID as gx,a.sParentCodeName,a.IsSort as bjdj,a.sCodeNum as ycsj,b.sfree1,c.sCodeID as qxdm,c.sCodeNum as qxsl
+SELECT   a.ManufacturPlant,a.sCodeID,a.scodename,a.sParentCodeID as gx,a.sParentCodeName,a.IsSort as bjdj,a.sCodeNum as ycsj,b.sfree1,a.IsShow
 FROM      Sta_CodeCenter a 
 left join Ba_Employee b on a.sCodeID=b.EmployeeID
-left join temp c on c.ManufacturPlant=a.ManufacturPlant and c.sParentCodeID=a.sParentCodeID
-WHERE   (sModule IN ('63', '62')) and winform='DefectWarnManSet' and b.sfree1 is not null
-ORDER BY sModule
+--inner join temp c on c.ManufacturPlant=a.ManufacturPlant and c.sParentCodeID=a.sParentCodeID
+WHERE   (sModule IN ('63', '62')) and winform='DefectWarnManSet'
 ";
 //            string sqlLevel = @" SELECT   a.ManufacturPlant,a.sCodeID,a.scodename,a.sParentCodeID,a.sParentCodeName,a.IsSort,a.sCodeNum,b.sfree1
 //FROM Sta_CodeCenter a left join Ba_Employee b on a.sCodeID = b.EmployeeID
@@ -223,13 +226,32 @@ ORDER BY sModule
                     bool issend= false;
                     string ManufacturPlant = dt1.Rows[i]["ManufacturPlant"].ToString();
                     string Process= dt1.Rows[i]["gx"].ToString();
-                    string qxdm = dt1.Rows[i]["qxdm"].ToString();
-                    string qxsl = dt1.Rows[i]["qxsl"].ToString();
+                   // string qxdm = dt1.Rows[i]["qxdm"].ToString();
+                    //string qxsl = dt1.Rows[i]["qxsl"].ToString();
                     int yujingshijian = getshijian(dt1.Rows[i]["ycsj"].ToString());
-                    string condition1 = string.Format(" and ManufacturePlant='{0}' and Process='{1}' and CreateRq<='{2}' and Cause='{3}' ", ManufacturPlant, Process,DateTime.Now.AddHours(yujingshijian), qxdm);
-                    string condition2 = string.Format("having SUM(Sl)>={0}", qxsl);
+                    string ThreeLevelCondition = "";
+                    //if(dt1.Rows[i]["IsShow"].ToString()!="1")
+                    //{
+                    //    if(dt1.Rows[i]["bjdj"].ToString()=="3")
+                    //    {
+                    //        continue;
+                    //    }
+                    //}
+                    if (dt1.Rows[i]["bjdj"].ToString() == "3")
+                    {
+                        ThreeLevelCondition += " and IsShow=1 ";
+                    }
+                    string condition1 = string.Format(@" and ManufacturePlant='{0}' and Process='{1}' and CreateRq<='{2}' and Cause in (SELECT   sCodeID
+FROM      Sta_CodeCenter
+WHERE   (sModule IN ('63', '62')) and winform='DefectWarnSet'
+and ManufacturPlant='{0}' and sParentCodeID='{1}' {3})
+", ManufacturPlant, Process,DateTime.Now.AddHours(yujingshijian),ThreeLevelCondition);
+                    string condition2 = string.Format("having SUM(Sl)>=({0})", string.Format(@"SELECT   sCodeNum
+FROM      Sta_CodeCenter
+WHERE   (sModule IN ('63', '62')) and winform='DefectWarnSet'
+and ManufacturPlant='{0}' and sParentCodeID='{1}' and sCodeID=Mes_TaskWork_D.cause {2}", ManufacturPlant, Process,ThreeLevelCondition));
 
-                    string qianzhui = ManufacturPlant+"工厂,"+ Process+"工序"+ qxdm+"缺陷类型";
+                    string qianzhui = ManufacturPlant+"工厂,"+ Process+"工序";
 
                     DataTable dttemp = new DataTable();
                     string huizong = huizongshuju(condition1, condition2,out dttemp);
@@ -347,7 +369,7 @@ GROUP BY OrganID, ManufacturePlant, Process, ProjectName, ProjectDesc, InputRq,C
                 Machine as 机台, Cause as 缺陷代码, CauseDesc as 缺陷名称, InputRq as 日期, 
 SUM(Sl) AS  数量
 FROM      dbo.Mes_TaskWork_D
-WHERE   TaskSubType='DCL5001' and DecisionType in ('新建','退片') {0}
+WHERE   TaskSubType='DCL5001' and DecisionType in ('新建','处理中') {0}
 GROUP BY OrganID, ManufacturePlant, Process, ProjectName, ProjectDesc, Cause, CauseDesc, InputRq,ClassGroup,ClassGrade,Machine";
             sql = string.Format(sql,condition1);
             DataTable dt = MailHelperDTORe.FindTableBySql(sql);
@@ -374,6 +396,20 @@ GROUP BY OrganID, ManufacturePlant, Process, ProjectName, ProjectDesc, Cause, Ca
                 result += "</table>";
             }
             return result;
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            this.SenderTimer.Enabled = true;
+            //设置定时器间隔
+            this.SenderTimer.Interval = 1000 * 60 * Convert.ToInt32(this.textBox1.Text);
+            MessageBox.Show("启动成功。");
+            this.label4.Text="服务启动成功";
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            SendMail("991011509@qq.com", "21", "20190322", "23", "22", "12", "");
         }
     }
 
